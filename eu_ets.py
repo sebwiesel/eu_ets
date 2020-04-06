@@ -15,16 +15,22 @@ st.title('EU Emissions Trading System')
 
 DATA_URL = r'https://raw.githubusercontent.com/sebwiesel/eu_ets/master/data_03.csv'
 
-#DATA_URL = ('https://s3-us-west-2.amazonaws.com/'
-#         'streamlit-demo-data/uber-raw-data-sep14.csv.gz')
-
 st.markdown(
-"""
-This is a demo of a Streamlit app that shows the Uber pickups
-geographical distribution in New York City. Use the slider
-to pick a specific hour and look at how the charts change.
-[See source code](https://github.com/streamlit/demo-uber-nyc-pickups/blob/master/app.py)
-""")
+'''
+The EU emissions trading system (EU ETS) is a cornerstone of the EU's policy
+to combat climate change and its key tool for reducing greenhouse gas emissions
+cost-effectively. It is the world's first major carbon market and remains the
+biggest one. This Streamlit app hosted on Heroku shows all installations that
+fall within the scope of the EU ETS. Use the slider to pick a specific year
+and look at how the chart changes. You can also switch between 4 different data
+points and scale the size of the data bars. The height of a data bar indicates
+the absolute amount of the selected data point. The colour or a data bars
+indicates the percentage change between the start of the data and the selected
+year. Red indicates an increase green a decrease.
+
+Follow the link and take a look at the source code.
+[See source code](https://github.com/sebwiesel/eu_ets/blob/master/eu_ets.py)
+''')
 
 @st.cache(allow_output_mutation=True)
 def load_data(nrows):
@@ -41,7 +47,6 @@ def hex_to_RGB(hex):
   ''' "#FFFFFF" -> [255,255,255] '''
   # Pass 16 to the integer function for change of base
   return [int(hex[i:i+2], 16) for i in range(1,6,2)]
-
 
 def RGB_to_hex(RGB):
   ''' [255,255,255] -> "#FFFFFF" '''
@@ -123,8 +128,6 @@ make_colors(data, value='VERIFIED_EMISSIONS_PCT_CHANGE', center=0)
 # Sidebar
 # -----------------------------------------------------------------------------
 
-st.sidebar.title('Sidebar Title')
-
 metric = st.sidebar.selectbox(label='Data Point',
                               options=['VERIFIED_EMISSIONS',
                                        'ALLOCATION',
@@ -141,7 +144,7 @@ year = st.sidebar.slider(label='Year',
 scale = st.sidebar.slider(label='Scale',
                          min_value=1,
                          max_value=100,
-                         value=1,
+                         value=50,
                          step=1)
 
 lower_percentile, upper_percentile = st.sidebar.slider(label='Percentile',
@@ -155,12 +158,15 @@ col_tooltip = {
             ACCOUNT HOLDER: {ACCOUNT_HOLDER_NAME}<br>
             INSTALLATION: {INSTALLATION_NAME}<br>
             VERIFIED EMISSIONS: {VERIFIED_EMISSIONS} tC02e<br>
+            Change since 2008: {VERIFIED_EMISSIONS_PCT_CHANGE}<br>
             ALLOCATION: {ALLOCATION}<br>
+            Change since 2008: {ALLOCATION_PCT_CHANGE}<br>            
             ALLOCATION RESERVE: {ALLOCATION_RESERVE}<br>
+            Change since 2008: {ALLOCATION_RESERVE_PCT_CHANGE}<br>
             ALLOCATION TRANSITIONAL: {ALLOCATION_TRANSITIONAL}<br>
+            Change since 2008: {ALLOCATION_TRANSITIONAL_PCT_CHANGE}<br>
             ACTIVITY TYPE: {ACTIVITY_TYPE}<br>
-            COUNTRY: {COUNTRY}<br>
-            
+            COUNTRY: {COUNTRY}<br>            
             ''',
     'style': {
         'background': 'grey',
@@ -186,30 +192,6 @@ data_perc = data_year[mask_perc]
 
 filtered_data = data_perc
 filtered_data.sort_values(metric, ascending=False, inplace=True)
-
-
-
-# # If the user doesn't want to select which features to control, these will be used.
-# default_control_features = ['Young','Smiling','Male']
-# if st.sidebar.checkbox('Show advanced options'):
-#     # Randomly initialize feature values. 
-#     features = get_random_features(feature_names, seed)
-#     # Let the user pick which features to control with sliders.
-#     control_features = st.sidebar.multiselect( 'Control which features?',
-#         sorted(features), default_control_features)
-# else:
-#     features = get_random_features(feature_names, seed)
-#     # Don't let the user pick feature values to control.
-#     control_features = default_control_features
-
-# # Insert user-controlled values from sliders into the feature vector.
-# for feature in control_features:
-#     features[feature] = st.sidebar.slider(feature, 0, 100, 50, 5)
-
-# # Generate a new image from this feature vector (or retrieve it from the cache).
-# with session.as_default():
-#     image_out = generate_image(session, pg_gan_model, tl_gan_model,
-#             features, feature_names)
 
 
 st.subheader('Map of all Installations')
@@ -246,61 +228,6 @@ st.write(pdk.Deck(
     tooltip = col_tooltip
 ))
 
-# legend = """
-#                 <style>
-#                 .bdot {{
-#                 height: 15px;
-#                 width: 15px;
-#                 background-color: Blue;
-#                 border-radius: 50%;
-#                 display: inline-block;
-#                 }}
-#                 .gdot {{
-#                 height: 15px;
-#                 width: 15px;
-#                 background-color: #4DFF00;
-#                 border-radius: 50%;
-#                 display: inline-block;
-#                 }}
-#                 </style>
-#                 </head>
-#                 <body>
-#                 <div style="text-align:left">
-#                 <h3>Legend</h3>
-#                 <span class="bdot"></span>  {} - {}<br>
-#                 <span class="gdot"></span>  &#62;{} - {}
-#                 </div>
-#                 </body>
-#                 """.format(round(min_val), round((max_val - min_val) / 2), round((max_val - min_val) / 2), round(max_val))
-
-# st.markdown(legend, unsafe_allow_html=True)
-
-
-if st.checkbox('Show raw data', False):
-    st.subheader('Raw data by ... year minute')
+if st.checkbox('Show Raw Data'):
+    st.subheader('Raw Data for Selection')
     st.write(filtered_data)
-    
-    
-    
-# # -----------------------------------------------------------------------------
-# # Define Layers
-# # -----------------------------------------------------------------------------
-# hex_layer = pdk.Layer(
-#     'HexagonLayer',
-#     data=data,
-#     get_position=['lon', 'lat'],
-#     radius=100,
-#     elevation_scale=4,
-#     elevation_range=[0, 1000],
-#     pickable=True,
-#     extruded=True,
-# )
-
-# sct_layer = pdk.Layer(
-#     'ScatterplotLayer',
-#     data=data,
-#     get_position=['lon', 'lat'],
-#     auto_highlight=True,
-#     get_radius=10000,          # Radius is given in meters
-#     get_fill_color=[180, 0, 200, 140],  # Set an RGBA value for fill
-#     pickable=True)
