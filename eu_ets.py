@@ -13,7 +13,7 @@ import pydeck as pdk
 
 st.title('EU Emissions Trading System')
 
-DATA_URL = r'/Users/sebastian/Google Drive/ai_stock_picker/06_eu_ets/data_03.csv'
+DATA_URL = r'https://raw.githubusercontent.com/sebwiesel/eu_ets/master/data_03.csv'
 
 #DATA_URL = ('https://s3-us-west-2.amazonaws.com/'
 #         'streamlit-demo-data/uber-raw-data-sep14.csv.gz')
@@ -28,7 +28,7 @@ to pick a specific hour and look at how the charts change.
 
 @st.cache(allow_output_mutation=True)
 def load_data(nrows):
-    data = pd.read_csv(DATA_URL, nrows=nrows, sep='|')
+    data = pd.read_csv(DATA_URL, nrows=nrows, sep='|', error_bad_lines=False)
     # Streamlit is a lowercase world so ...
     #lowercase = lambda x: str(x).lower()
     #data.rename(lowercase, axis='columns', inplace=True)
